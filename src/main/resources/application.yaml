@@ -9,3 +9,13 @@ spring:
       auto-offset-reset: earliest
     topic:
       notification: notification-topic
+  datasource:
+    url: jdbc:postgresql://localhost:5432/onlineshop
+    username: user
+    password: password
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: false 
