@@ -17,7 +17,7 @@ public class NotificationKafkaProducer {
                 .thenAccept(result -> System.out.printf("✅ Notification sent to Kafka: topic=%s offset=%d%n",
                         result.getRecordMetadata().topic(), result.getRecordMetadata().offset()))
                 .exceptionally(ex -> {
-                    System.err.println("❌ Error sending to Kafka: " + ex.getMessage());
+                    System.err.println("Error sending to Kafka: " + ex.getMessage());
                     return null;
                 });
     }
