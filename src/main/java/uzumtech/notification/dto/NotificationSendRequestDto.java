@@ -1,6 +1,7 @@
 package uzumtech.notification.dto;
 
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -10,6 +11,7 @@ import uzumtech.notification.constant.enums.NotificationType;
 @NoArgsConstructor
 @Getter
 @Setter
+@Builder
 public class NotificationSendRequestDto {
     private String title;
     private String body;
