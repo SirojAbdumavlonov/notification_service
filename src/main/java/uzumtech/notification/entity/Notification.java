@@ -54,13 +54,10 @@ public class Notification {
     @UpdateTimestamp
     private LocalDateTime updatedAt;
 
-
-    // ✅ Исправленный метод
     public String getRecipient() {
         return receiverInfo;
     }
 
-    // ✅ Возвращаем ID связанного Merchant
     public Long getMerchantId() {
         return merchant != null ? merchant.getId() : null;
     }
