@@ -7,6 +7,9 @@ import org.springframework.stereotype.Service;
 import uzumtech.notification.dto.NotificationSendRequestDto;
 import uzumtech.notification.service.sender.NotificationGeneratorFactory;
 
+/**
+ * Consumer для обработки уведомлений из Kafka
+ */
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -14,22 +17,30 @@ public class NotificationConsumer {
 
     private final NotificationGeneratorFactory notificationGeneratorFactory;
 
-    @KafkaListener(topics = "${spring.kafka.topic.notification}", groupId = "${spring.kafka.consumer.group-id}")
+    /**
+     * Получение и обработка уведомлений из Kafka топика
+     */
+    @KafkaListener(topics = "${app.kafka.topic.notification}", groupId = "${spring.kafka.consumer.group-id}")
     public void consume(NotificationSendRequestDto notification) {
-        log.info("Получено сообщение из Kafka: merchantId={}, type={}, recipient={}",
-            notification.getMerchantId(), notification.getType().name(), notification.getReceiver());
+        log.info("Получено сообщение из Kafka: merchantId={}, type={}, receiver={}",
+                notification.getMerchantId(), notification.getType(), notification.getReceiver());
 
         try {
-            //TODO: Здесь будет вызов сервиса отправки (SMS/Email/Push)
-            var response = notificationGeneratorFactory.getGenerator(notification.getType()).
-                sendNotification(notification);
+            // Получаем нужный отправитель (SMS/Email/Push) и отправляем уведомление
+            var response = notificationGeneratorFactory
+                    .getGenerator(notification.getType())
+                    .sendNotification(notification);
 
-            log.info("Уведомление успешно обработано: notificationId={}", response.getData().getNotificationId());
+            if (response.isSuccess()) {
+                log.info("Уведомление успешно обработано: notificationId={}",
+                        response.getData().getNotificationId());
+            } else {
+                log.warn("Уведомление обработано с ошибкой: {}", response.getMessage());
+            }
 
         } catch (Exception e) {
-            log.error("Ошибка при обработке уведомления: merchantId={}, receiver={} error={}",
-               notification.getMerchantId(), notification.getReceiver(), e.getMessage());
+            log.error("Ошибка при обработке уведомления: merchantId={}, receiver={}, error={}",
+                    notification.getMerchantId(), notification.getReceiver(), e.getMessage(), e);
         }
     }
 }
-//Получает сообщения из Kafka и обрабатывает их

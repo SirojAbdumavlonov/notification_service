@@ -1,24 +1,41 @@
 package uzumtech.notification.service;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Component;
 import uzumtech.notification.dto.NotificationSendRequestDto;
 
+/**
+ * Сервис для отправки уведомлений в Kafka
+ */
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class NotificationKafkaProducer {
 
     private final KafkaTemplate<String, NotificationSendRequestDto> kafkaTemplate;
-    private static final String TOPIC = "notifications";
 
+    @Value("${app.kafka.topic.notification}")
+    private String notificationTopic;
+
+    /**
+     * Отправить уведомление в Kafka топик
+     */
     public void send(NotificationSendRequestDto message) {
-        kafkaTemplate.send(TOPIC, message)
-                .thenAccept(result -> System.out.printf("✅ Notification sent to Kafka: topic=%s offset=%d%n",
-                        result.getRecordMetadata().topic(), result.getRecordMetadata().offset()))
-                .exceptionally(ex -> {
-                    System.err.println("Error sending to Kafka: " + ex.getMessage());
-                    return null;
+        log.info("Отправка уведомления в Kafka: merchantId={}, type={}, receiver={}",
+                message.getMerchantId(), message.getType(), message.getReceiver());
+
+        kafkaTemplate.send(notificationTopic, message)
+                .whenComplete((result, ex) -> {
+                    if (ex != null) {
+                        log.error("Ошибка при отправке в Kafka: {}", ex.getMessage(), ex);
+                    } else {
+                        log.info("Уведомление успешно отправлено в Kafka: topic={}, offset={}",
+                                result.getRecordMetadata().topic(),
+                                result.getRecordMetadata().offset());
+                    }
                 });
     }
 }

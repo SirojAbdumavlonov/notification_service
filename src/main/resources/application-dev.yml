@@ -10,8 +10,10 @@ spring:
     consumer:
       group-id: notification-service-group
       auto-offset-reset: earliest
-    topic:
-      notification: notification-topic
+      enable-auto-commit: true
+    producer:
+      acks: 1
+      retries: 3
 
   jpa:
     hibernate:
@@ -24,7 +26,11 @@ openapi:
   description: notification sender app
   server-url: http://localhost:8080
 
+# Настройки приложения
 app:
+  kafka:
+    topic:
+      notification: notification-topic
   firebase:
     enabled: false
     location: classpath:firebase/dev/notification.json

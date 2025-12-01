@@ -1,4 +1,4 @@
-package uzumtech.notification.service;
+package uzumtech.notification.repository;
 
 import uzumtech.notification.entity.Notification;
 import uzumtech.notification.constant.enums.NotificationStatus;
