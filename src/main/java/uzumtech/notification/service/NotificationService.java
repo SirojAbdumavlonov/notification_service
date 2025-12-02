@@ -1,32 +1,32 @@
 package uzumtech.notification.service;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import uzumtech.notification.constant.enums.NotificationStatus;
 import uzumtech.notification.dto.NotificationSendRequestDto;
 import uzumtech.notification.entity.Notification;
+import uzumtech.notification.entity.Price;
 import uzumtech.notification.exception.notification.NotificationNotFoundException;
 import uzumtech.notification.repository.NotificationRepository;
 
 /**
- * Сервис для обработки уведомлений и отправки событий в Kafka
+ * Сервис для обработки уведомлений и отправки событий в Kafka + бизнес-логика цены
  */
 @Service
+@RequiredArgsConstructor
 public class NotificationService {
 
     private final NotificationRepository repository;
     private final NotificationKafkaProducer kafkaProducer;
-
-    public NotificationService(NotificationRepository repository, NotificationKafkaProducer kafkaProducer) {
-        this.repository = repository;
-        this.kafkaProducer = kafkaProducer;
-    }
+    private final PriceService priceService; // добавили бизнес-логику прайса
 
     /**
-     * Отправить уведомление — сохраняет в БД и публикует событие в Kafka.
+     * Отправить уведомление — сохраняет в БД, проставляет цену и публикует событие в Kafka.
      */
     @Transactional
     public Notification send(Notification notification) {
+
         if (notification == null) {
             throw new IllegalArgumentException("Notification не может быть null");
         }
@@ -34,39 +34,44 @@ public class NotificationService {
             throw new IllegalArgumentException("Recipient не может быть пустым");
         }
 
-        //Сохраняем со статусом QUEUED
+        // ============================
+        //    БИЗНЕС-ЛОГИКА PRICE
+        // ============================
+        Price price = priceService.getActivePrice();   // например 85 сум
+
+        notification.setPrice(price.getPrice());       // сохраняем цену в уведомление
+
+        // Устанавливаем статус
         notification.setStatus(NotificationStatus.QUEUED);
+
+        // Сохраняем в БД
         Notification saved = repository.save(notification);
 
-        //Формируем сообщение для Kafka
+        // DTO для Kafka
         NotificationSendRequestDto message = NotificationSendRequestDto.builder()
                 .type(saved.getType())
                 .title(saved.getTitle())
                 .body(saved.getBody())
                 .receiver(saved.getRecipient())
                 .merchantId(saved.getMerchantId())
+                .price(saved.getPrice()) // цена уходит в Kafka-сообщение
                 .build();
 
-        //Отправляем асинхронно и обрабатываем результат
+        // Асинхронная отправка
         kafkaProducer.send(message)
                 .whenComplete((result, ex) -> {
                     if (ex == null) {
-                        // Успешно отправлено в Kafka — можно обновить статус на SENT
-                        // (делаем это в отдельной транзакции, чтобы не держать текущую открытой)
                         markAsSent(saved.getId());
                     } else {
-                        // Ошибка — обновляем статус на FAILED
                         markAsFailed(saved.getId(), ex);
                     }
                 });
 
-        //Возвращаем сразу сохранённую сущность (со статусом QUEUED)
         return saved;
     }
 
     /**
-     * Отдельные методы нужны, т.к. whenComplete выполняется в другом потоке
-     * и не должен участвовать в текущей транзакции
+     * Отдельные транзакции для обновления статуса после отправки Kafka
      */
     @Transactional
     public void markAsSent(Long notificationId) {

@@ -48,6 +48,10 @@ public class Notification {
 
     private String message;
 
+    //Добавляем цену за сообщение
+    @Column(nullable = false)
+    private Integer price;
+
     @CreationTimestamp
     private LocalDateTime createdAt;
 
