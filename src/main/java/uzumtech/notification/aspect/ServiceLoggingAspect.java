@@ -11,10 +11,8 @@ import uzumtech.notification.dto.NotificationSendRequestDto;
 import uzumtech.notification.dto.NotificationSendResponseDto;
 import uzumtech.notification.dto.ResponseDto;
 
-/**
- * Аспект для логирования методов сервисов
- * Перенес сюда логирование из PushNotificationSender и NotificationConsumer
- */
+// Аспект для логирования методов сервисов
+// Перенес сюда логирование из PushNotificationSender и NotificationConsumer
 @Aspect
 @Component
 @Slf4j

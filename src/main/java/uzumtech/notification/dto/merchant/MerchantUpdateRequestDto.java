@@ -6,10 +6,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-/**
- * DTO для обновления данных мерчанта
- * Все поля опциональные - обновляются только те, что переданы
- */
+// DTO для обновления данных мерчанта
+// Все поля опциональные - обновляются только те, что переданы
 @Getter
 @Setter
 @NoArgsConstructor

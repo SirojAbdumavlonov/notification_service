@@ -11,10 +11,8 @@ import uzumtech.notification.dto.NotificationSendRequestDto;
 
 import java.util.concurrent.CompletableFuture;
 
-/**
- * Аспект для логирования Kafka операций
- * Перенес сюда логирование из NotificationKafkaProducer
- */
+// Аспект для логирования Kafka операций
+// Перенес сюда логирование из NotificationKafkaProducer
 @Aspect
 @Component
 @Slf4j

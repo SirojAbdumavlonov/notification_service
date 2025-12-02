@@ -8,10 +8,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-/**
- * DTO для создания нового мерчанта
- * Клиент отправляет эти данные при регистрации
- */
+// DTO для создания нового мерчанта
+// Клиент отправляет эти данные при регистрации
 @Getter
 @Setter
 @NoArgsConstructor
