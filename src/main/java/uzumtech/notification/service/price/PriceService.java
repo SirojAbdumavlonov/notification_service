@@ -26,4 +26,5 @@ public class PriceService {
     public Long getPricePerSms() {
         return getActivePrice().getPrice();
     }
+    // Будут доработки на случай изменения трафика в середине месяца
 }
