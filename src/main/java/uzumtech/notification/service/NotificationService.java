@@ -30,18 +30,15 @@ public class NotificationService {
         if (notification == null) {
             throw new IllegalArgumentException("Notification не может быть null");
         }
-
         if (notification.getRecipient() == null || notification.getRecipient().isBlank()) {
             throw new IllegalArgumentException("Recipient не может быть пустым");
         }
 
-        //Устанавливаем статус PENDING
-        notification.setStatus(NotificationStatus.PENDING);
-
-        //Сохраняем уведомление
+        //Сохраняем со статусом QUEUED
+        notification.setStatus(NotificationStatus.QUEUED);
         Notification saved = repository.save(notification);
 
-        //Формируем DTO для Kafka
+        //Формируем сообщение для Kafka
         NotificationSendRequestDto message = NotificationSendRequestDto.builder()
                 .type(saved.getType())
                 .title(saved.getTitle())
@@ -50,14 +47,35 @@ public class NotificationService {
                 .merchantId(saved.getMerchantId())
                 .build();
 
-        //Публикуем событие в Kafka
-        kafkaProducer.send(message);
+        //Отправляем асинхронно и обрабатываем результат
+        kafkaProducer.send(message)
+                .whenComplete((result, ex) -> {
+                    if (ex == null) {
+                        // Успешно отправлено в Kafka — можно обновить статус на SENT
+                        // (делаем это в отдельной транзакции, чтобы не держать текущую открытой)
+                        markAsSent(saved.getId());
+                    } else {
+                        // Ошибка — обновляем статус на FAILED
+                        markAsFailed(saved.getId(), ex);
+                    }
+                });
 
-        //Обновляем статус на QUEUED (ожидает обработки)
-        saved.setStatus(NotificationStatus.QUEUED);
-        repository.save(saved);
-
+        //Возвращаем сразу сохранённую сущность (со статусом QUEUED)
         return saved;
+    }
+
+    /**
+     * Отдельные методы нужны, т.к. whenComplete выполняется в другом потоке
+     * и не должен участвовать в текущей транзакции
+     */
+    @Transactional
+    public void markAsSent(Long notificationId) {
+        updateStatus(notificationId, NotificationStatus.SENT);
+    }
+
+    @Transactional
+    public void markAsFailed(Long notificationId, Throwable ex) {
+        updateStatus(notificationId, NotificationStatus.FAILED);
     }
 
     /**
