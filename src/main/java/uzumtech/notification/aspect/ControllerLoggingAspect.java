@@ -8,10 +8,8 @@ import org.springframework.stereotype.Component;
 import uzumtech.notification.dto.NotificationSendRequestDto;
 import uzumtech.notification.dto.ResponseDto;
 
-/**
- * Аспект для логирования всех запросов к контроллерам
- * Перенес логирование из контроллеров сюда для чистоты кода
- */
+// Аспект для логирования всех запросов к контроллерам
+// Перенес логирование из контроллеров сюда для чистоты кода
 @Aspect
 @Component
 @Slf4j
