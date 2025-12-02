@@ -3,13 +3,12 @@ package uzumtech.notification.service;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.kafka.support.SendResult;
 import org.springframework.stereotype.Component;
 import uzumtech.notification.dto.NotificationSendRequestDto;
 
-/**
- * Сервис для отправки уведомлений в Kafka
- * Логирование вынесено в KafkaLoggingAspect
- */
+import java.util.concurrent.CompletableFuture;
+
 @Component
 @RequiredArgsConstructor
 public class NotificationKafkaProducer {
@@ -20,13 +19,13 @@ public class NotificationKafkaProducer {
     private String notificationTopic;
 
     /**
-     * Отправить уведомление в Kafka топик
-     * Используем merchantId как ключ для гарантии порядка обработки
+     * Возвращает CompletableFuture, чтобы можно было обработать успех/ошибку отправки
      */
-    public void send(NotificationSendRequestDto message) {
-        // Используем merchantId как ключ для партиционирования
+    public CompletableFuture<SendResult<String, NotificationSendRequestDto>> send(
+            NotificationSendRequestDto message) {
+
         String key = String.valueOf(message.getMerchantId());
 
-        kafkaTemplate.send(notificationTopic, key, message);
+        return kafkaTemplate.send(notificationTopic, key, message);
     }
 }
