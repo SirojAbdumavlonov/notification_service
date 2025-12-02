@@ -38,7 +38,7 @@ public class NotificationController {
         Notification notification = notificationMapper.toEntity(request, merchantRepository);
 
         // Сохраняем в БД и отправляем в Kafka
-        Notification saved = notificationService.queue(notification);
+        Notification saved = notificationService.send(notification);
 
         log.info("Уведомление добавлено в очередь: id={}, status={}", saved.getId(), saved.getStatus());
 
