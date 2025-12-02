@@ -7,10 +7,8 @@ import lombok.Setter;
 
 import java.time.LocalDateTime;
 
-/**
- * DTO для ответа клиенту с информацией о мерчанте
- * НЕ содержит passwordHash - только публичные данные
- */
+// DTO для ответа клиенту с информацией о мерчанте
+// НЕ содержит passwordHash - только публичные данные
 @Getter
 @Setter
 @NoArgsConstructor
