@@ -17,7 +17,7 @@ import java.time.LocalDateTime;
 @Entity
 @Setter
 @Getter
-@Table(name = "Merchants")
+@Table(name = "merchants")
 public class Merchant {
 
     @Id
@@ -46,6 +46,6 @@ public class Merchant {
     private LocalDateTime createdAt;
 
     @UpdateTimestamp
-    private LocalDateTime UpdatedAt;
+    private LocalDateTime updatedAt;
 
 }

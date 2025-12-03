@@ -1,5 +1,6 @@
 package uzumtech.notification.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -39,6 +40,7 @@ public class Notification {
     @Column(name = "image_url")
     private String imageUrl;
 
+    @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name="merchant_id", nullable = false)
     private Merchant merchant;

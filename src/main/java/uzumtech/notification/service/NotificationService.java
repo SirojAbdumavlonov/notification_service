@@ -9,6 +9,8 @@ import uzumtech.notification.dto.NotificationSendRequestDto;
 import uzumtech.notification.entity.Notification;
 import uzumtech.notification.entity.Price;
 import uzumtech.notification.exception.notification.NotificationNotFoundException;
+import uzumtech.notification.mapper.NotificationMapper;
+import uzumtech.notification.repository.MerchantRepository;
 import uzumtech.notification.repository.NotificationRepository;
 import uzumtech.notification.service.kafka.producer.NotificationKafkaProducer;
 import uzumtech.notification.service.price.PriceService;
@@ -22,7 +24,20 @@ public class NotificationService {
 
     private final NotificationRepository repository;
     private final NotificationKafkaProducer kafkaProducer;
-    private final PriceService priceService; // добавили бизнес-логику прайса
+    private final PriceService priceService;
+    private final NotificationMapper notificationMapper;
+    private final MerchantRepository merchantRepository;
+
+    /**
+     * Отправить уведомление — принимает DTO, конвертирует в Entity, сохраняет в БД, проставляет цену и публикует событие в Kafka.
+     */
+    @Transactional
+    public Notification sendFromDto(NotificationSendRequestDto dto) {
+        // Конвертируем DTO в Entity
+        Notification notification = notificationMapper.toEntity(dto, merchantRepository);
+
+        return send(notification);
+    }
 
     /**
      * Отправить уведомление — сохраняет в БД, проставляет цену и публикует событие в Kafka.
@@ -41,7 +56,7 @@ public class NotificationService {
         //    БИЗНЕС-ЛОГИКА PRICE
         if (notification.getType() == NotificationType.SMS) {
             Price price = priceService.getActivePrice();  // только для SMS
-            priceValue = price.getPrice().longValue();
+            priceValue = price.getPrice();
         } else {
             priceValue = 0L; // EMAIL и PUSH бесплатные
         }
@@ -61,7 +76,6 @@ public class NotificationService {
                 .body(saved.getBody())
                 .receiver(saved.getRecipient())
                 .merchantId(saved.getMerchantId())
-                .price(saved.getPrice()) // цена уходит в Kafka-сообщение
                 .build();
 
         // Асинхронная отправка

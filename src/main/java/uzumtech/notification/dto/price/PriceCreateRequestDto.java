@@ -1,0 +1,22 @@
+package uzumtech.notification.dto.price;
+
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotNull;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+// DTO для создания новой цены
+@AllArgsConstructor
+@NoArgsConstructor
+@Getter
+@Setter
+public class PriceCreateRequestDto {
+
+    @NotNull(message = "Price is required")
+    @Min(value = 0, message = "Price must be positive")
+    private Long price;
+
+    // При создании новой цены старая автоматически становится неактивной
+}

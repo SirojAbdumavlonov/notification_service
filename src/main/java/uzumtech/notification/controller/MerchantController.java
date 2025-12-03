@@ -2,6 +2,7 @@ package uzumtech.notification.controller;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -9,8 +10,11 @@ import uzumtech.notification.dto.ResponseDto;
 import uzumtech.notification.dto.merchant.MerchantCreateRequestDto;
 import uzumtech.notification.dto.merchant.MerchantResponseDto;
 import uzumtech.notification.dto.merchant.MerchantUpdateRequestDto;
+import uzumtech.notification.dto.merchant.SmsBillingResponseDto;
 import uzumtech.notification.service.MerchantService;
+import uzumtech.notification.service.price.MerchantSmsBillingService;
 
+import java.time.LocalDate;
 import java.util.List;
 
 /**
@@ -24,6 +28,7 @@ import java.util.List;
 public class MerchantController {
 
     private final MerchantService merchantService;
+    private final MerchantSmsBillingService billingService;
 
     /**
      * Создать нового мерчанта
@@ -131,5 +136,36 @@ public class MerchantController {
     public ResponseEntity<Void> checkMerchantExists(@PathVariable Long id) {
         boolean exists = merchantService.exists(id);
         return exists ? ResponseEntity.ok().build() : ResponseEntity.notFound().build();
+    }
+
+    /**
+     * Получить биллинг за SMS для мерчанта за период
+     * GET /api/merchants/{id}/sms-billing?from=2024-01-01&to=2024-01-31
+     *
+     * @param id - ID мерчанта
+     * @param from - начало периода (формат: YYYY-MM-DD)
+     * @param to - конец периода (формат: YYYY-MM-DD)
+     * @return информация о биллинге за период (статус 200)
+     */
+    @GetMapping("/{id}/sms-billing")
+    public ResponseEntity<ResponseDto<SmsBillingResponseDto>> getSmsBilling(
+            @PathVariable Long id,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to) {
+
+        // Рассчитываем общую стоимость и количество SMS
+        Long totalCost = billingService.calculateSmsCost(id, from, to);
+        long smsCount = billingService.getSmsCount(id, from, to);
+
+        // Формируем DTO для ответа
+        SmsBillingResponseDto response = SmsBillingResponseDto.builder()
+                .merchantId(id)
+                .totalCost(totalCost)
+                .smsCount(smsCount)
+                .periodFrom(from)
+                .periodTo(to)
+                .build();
+
+        return ResponseEntity.ok(ResponseDto.createSuccessResponse(response));
     }
 }

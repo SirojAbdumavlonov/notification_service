@@ -13,5 +13,5 @@ import uzumtech.notification.constant.enums.NotificationStatus;
 public class PushResult {
     private NotificationStatus status;
     private String message;
-    boolean success;
+    private boolean success;
 }

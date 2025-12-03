@@ -5,6 +5,7 @@ import org.mapstruct.Context;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
+import uzumtech.notification.dto.NotificationResponseDto;
 import uzumtech.notification.dto.NotificationSendRequestDto;
 import uzumtech.notification.entity.Merchant;
 import uzumtech.notification.entity.Notification;
@@ -22,6 +23,7 @@ public interface NotificationMapper {
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
     @Mapping(target = "message", ignore = true)
+    @Mapping(target = "price", ignore = true)
     @Mapping(target = "status", constant = "PENDING")
     @Mapping(source = "title", target = "title")
     @Mapping(source = "body", target = "body")
@@ -36,4 +38,20 @@ public interface NotificationMapper {
         return merchantRepository.findById(merchantId)
             .orElseThrow(() -> new MerchantNotFoundException("Merchant not found with id: " + merchantId));
     }
+
+    // Преобразование Entity в ResponseDto
+    @BeanMapping(ignoreByDefault = true)
+    @Mapping(source = "id", target = "id")
+    @Mapping(source = "status", target = "status")
+    @Mapping(source = "type", target = "type")
+    @Mapping(source = "title", target = "title")
+    @Mapping(source = "body", target = "body")
+    @Mapping(source = "imageUrl", target = "imageUrl")
+    @Mapping(source = "merchant.id", target = "merchantId")
+    @Mapping(source = "receiverInfo", target = "receiverInfo")
+    @Mapping(source = "message", target = "message")
+    @Mapping(source = "price", target = "price")
+    @Mapping(source = "createdAt", target = "createdAt")
+    @Mapping(source = "updatedAt", target = "updatedAt")
+    NotificationResponseDto toResponseDto(Notification entity);
 }

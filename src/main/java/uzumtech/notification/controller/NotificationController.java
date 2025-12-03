@@ -5,11 +5,11 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import uzumtech.notification.dto.NotificationResponseDto;
 import uzumtech.notification.dto.NotificationSendRequestDto;
 import uzumtech.notification.dto.ResponseDto;
 import uzumtech.notification.entity.Notification;
 import uzumtech.notification.mapper.NotificationMapper;
-import uzumtech.notification.repository.MerchantRepository;
 import uzumtech.notification.service.NotificationService;
 
 /**
@@ -23,19 +23,14 @@ public class NotificationController {
 
     private final NotificationService notificationService;
     private final NotificationMapper notificationMapper;
-    private final MerchantRepository merchantRepository;
 
     /**
      * Отправить уведомление (добавляет в очередь Kafka)
      */
     @PostMapping("/send")
     public ResponseEntity<ResponseDto<Long>> sendNotification(@Valid @RequestBody NotificationSendRequestDto request) {
-        // Преобразуем DTO в entity
-        Notification notification = notificationMapper.toEntity(request, merchantRepository);
-
-        // Сохраняем в БД и отправляем в Kafka
-
-        Notification saved = notificationService.send(notification);
+        // Сервис сам конвертирует DTO в entity и сохраняет
+        Notification saved = notificationService.sendFromDto(request);
 
         // Возвращаем ID созданного уведомления
         return ResponseEntity
@@ -45,9 +40,10 @@ public class NotificationController {
 
     // Получить уведомление по ID
     @GetMapping("/{id}")
-    public ResponseEntity<ResponseDto<Notification>> getNotification(@PathVariable Long id) {
+    public ResponseEntity<ResponseDto<NotificationResponseDto>> getNotification(@PathVariable Long id) {
         Notification notification = notificationService.findById(id);
+        NotificationResponseDto responseDto = notificationMapper.toResponseDto(notification);
 
-        return ResponseEntity.ok(ResponseDto.createSuccessResponse(notification));
+        return ResponseEntity.ok(ResponseDto.createSuccessResponse(responseDto));
     }
 }
