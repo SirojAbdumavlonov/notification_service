@@ -37,6 +37,8 @@ services:
     depends_on:
       - postgres
 
+
+
 volumes:
   postgres_data:
   kafka_data:

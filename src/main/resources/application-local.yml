@@ -1,6 +1,6 @@
 spring:
   datasource:
-    url: ${DB_URL:jdbc:postgresql://localhost:5434/postgres}
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/postgres}
     username: ${DB_USERNAME:postgres}
     # Align default password with docker-compose POSTGRES_PASSWORD
     password: ${DB_PASSWORD:9376570167}
